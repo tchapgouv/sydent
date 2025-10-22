@@ -20,6 +20,7 @@ from netaddr import IPAddress
 import logging
 import json
 
+from sydent.db.invite_tokens import JoinTokenStore
 from sydent.db.threepid_associations import GlobalAssociationStore
 from sydent.http.servlets import get_args, jsonwrap, send_cors
 
@@ -48,7 +49,7 @@ class InfoServlet(Resource):
         receive hs, and it's contents should be that of shadow_hs in the
         config file.
 
-        Returns: { hs: ..., [shadow_hs: ...]}
+        Returns: { hs: ..., invited: true/false, [shadow_hs: ...]}
         """
 
         send_cors(request)
@@ -59,6 +60,11 @@ class InfoServlet(Resource):
 
         # Find an entry in the info file matching this user's ID
         result = self.info.match_user_id(medium, address)
+
+        # Report whether this user has been invited to a room
+        join_token_store = JoinTokenStore(self.sydent)
+        pending_join_tokens = join_token_store.getTokens(medium, address)
+        result['invited'] = True if pending_join_tokens else False
 
         # Check if this user is from a shadow hs/not whitelisted
         ip = IPAddress(self.sydent.ip_from_request(request))
