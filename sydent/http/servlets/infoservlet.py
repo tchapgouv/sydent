@@ -20,6 +20,7 @@ from netaddr import IPAddress
 import logging
 import json
 
+from sydent.db.invite_tokens import JoinTokenStore
 from sydent.db.threepid_associations import GlobalAssociationStore
 from sydent.http.servlets import get_args, jsonwrap, send_cors
 
@@ -48,7 +49,7 @@ class InfoServlet(Resource):
         receive hs, and it's contents should be that of shadow_hs in the
         config file.
 
-        Returns: { hs: ..., [shadow_hs: ...]}
+        Returns: { hs: ..., invited: true/false, [shadow_hs: ...]}
         """
 
         send_cors(request)
@@ -78,8 +79,13 @@ class InfoServlet(Resource):
                 result['new_hs'] = result['hs']
                 result['hs'] = current_hs
 
+        # Report whether this user has been invited to a room
+        join_token_store = JoinTokenStore(self.sydent)
+        pending_join_tokens = join_token_store.getTokens(medium, address)
+        already_invited = True if mxid else False
         # Non-internal. Remove 'requires_invite' if found
-        result.pop('requires_invite', None)
+        requires_invite = result.pop('requires_invite', False)
+        result['invited'] = True if requires_invite and (pending_join_tokens or already_invited) else False
 
         return result
 
