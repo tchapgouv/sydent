@@ -8,7 +8,7 @@
 # <http://www.apache.org/licenses/LICENSE-2.0>.
 
 import logging
-from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Set, Union
+from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Union
 
 import yaml
 from typing_extensions import TypedDict
@@ -70,7 +70,7 @@ class Terms:
                 policies[docName].update(doc["langs"])
         return {"policies": policies}
 
-    def getUrlSet(self) -> Set[str]:
+    def getUrlSet(self) -> set[str]:
         """
         :return: All the URLs for the terms in a set. Empty set if no terms.
         """

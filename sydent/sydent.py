@@ -20,6 +20,7 @@ import attr
 import prometheus_client
 import twisted.internet.reactor
 from matrix_common.versionstring import get_distribution_version_string
+from netaddr import IPSet, IPNetwork
 from signedjson.types import SigningKey
 from twisted.internet import address, task
 from twisted.internet.interfaces import (
@@ -597,7 +598,7 @@ def parse_cfg_bool(value):
     return value.lower() == "true"
 
 
-def set_from_comma_sep_string(rawstr: str) -> Set[str]:
+def set_from_comma_sep_string(rawstr: str) -> set[str]:
     if rawstr == '':
         return set()
     return {x.strip() for x in rawstr.split(',')}
