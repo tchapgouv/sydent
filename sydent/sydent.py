@@ -537,6 +537,10 @@ class Validators:
     msisdn: MsisdnValidator
 
 
+class Servlets:
+    pass
+
+
 @attr.s(frozen=True, slots=True, auto_attribs=True)
 class Keyring:
     ed25519: SigningKey
