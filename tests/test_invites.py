@@ -26,10 +26,13 @@ class ThreepidInvitesTestCase(unittest.TestCase):
         }
         self.sydent = make_sydent(test_config=config)
 
-    def test_delete_on_bind(self):
+    @patch("sydent.util.emailutils.smtplib")
+    def test_delete_on_bind(self, mock_smtplib):
         """Tests that 3PID invite tokens are deleted upon delivery after a successful
         bind.
         """
+        # Mock SMTP to avoid real email sending
+        mock_smtplib.SMTP.return_value = Mock()
         self.sydent.run()
 
         # The 3PID we're working with.
@@ -168,13 +171,15 @@ class ThreepidInvitesFallbackConfigTestCase(unittest.TestCase):
             "sender": "@foo:example.com",
             "room_name": "This is an EVIL room name.",
         }
-        request, channel = make_request(
-            self.sydent.reactor,
-            self.sydent.clientApiHttpServer.factory,
-            "POST",
-            "/_matrix/identity/api/v1/store-invite",
-            invite_config,
-        )
+        # Avoid real SMTP calls if request handling reaches email sending.
+        with patch("sydent.util.emailutils.smtplib"):
+            request, channel = make_request(
+                self.sydent.reactor,
+                self.sydent.clientApiHttpServer.factory,
+                "POST",
+                "/_matrix/identity/api/v1/store-invite",
+                invite_config,
+            )
         self.assertEqual(channel.code, 403)
 
     def test_third_party_invite_keyword_blocklist_exempts_web_client_location_url(
@@ -212,7 +217,11 @@ class ThreepidInvitesNoDeleteTestCase(unittest.TestCase):
         config = {"general": {"delete_tokens_on_bind": "false"}}
         self.sydent = make_sydent(test_config=config)
 
-    def test_no_delete_on_bind(self):
+    @patch("sydent.util.emailutils.smtplib")
+    def test_no_delete_on_bind(self, mock_smtplib):
+        """Test that invite tokens are not deleted when that is disabled."""
+        # Mock SMTP to avoid real email sending
+        mock_smtplib.SMTP.return_value = Mock()
         self.sydent.run()
 
         # The 3PID we're working with.

@@ -278,6 +278,8 @@ class Sydent:
         use_tls_for_federation: bool = True,
     ):
         self.config = sydent_config
+        # Backward compatibility for legacy call sites expecting this attribute.
+        self.server_name = self.config.general.server_name
 
         self.reactor = reactor
         self.use_tls_for_federation = use_tls_for_federation
