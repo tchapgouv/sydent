@@ -192,6 +192,44 @@ def jsonwrap(f: Callable[[Res, Request], JsonDict]) -> Callable[[Res, Request], 
 AsyncRenderer = Callable[[Res, Request], Awaitable[JsonDict]]
 
 
+def deferjsonwrap(
+    f: Callable[[Res, Request], defer.Deferred]
+) -> Callable[[Res, Request], object]:
+    """Compatibility wrapper for Deferred-based servlet handlers."""
+
+    @functools.wraps(f)
+    def inner(self: Res, request: Request) -> object:
+        request.setHeader("Content-Type", "application/json")
+
+        d = defer.maybeDeferred(f, self, request)
+
+        def on_success(result: JsonDict) -> None:
+            request.write(dict_to_json_bytes(result))
+            request.finish()
+
+        def on_error(failure: Any) -> None:
+            if failure.check(MatrixRestError):
+                e = failure.value
+                request.setResponseCode(e.httpStatus)
+                request.write(
+                    dict_to_json_bytes({"errcode": e.errcode, "error": e.error})
+                )
+            else:
+                logger.exception("Request processing failed", exc_info=failure.value)
+                request.setResponseCode(500)
+                request.write(
+                    dict_to_json_bytes(
+                        {"errcode": "M_UNKNOWN", "error": "Internal Server Error"}
+                    )
+                )
+            request.finish()
+
+        d.addCallbacks(on_success, on_error)
+        return server.NOT_DONE_YET
+
+    return inner
+
+
 def asyncjsonwrap(f: AsyncRenderer[Res]) -> Callable[[Res, Request], object]:
     async def render(f: AsyncRenderer[Res], self: Res, request: Request) -> None:
         request.setHeader("Content-Type", "application/json")
