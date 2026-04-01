@@ -3,6 +3,7 @@ import logging
 import os
 from io import BytesIO
 from typing import Dict, Optional
+from urllib.parse import parse_qs
 from unittest.mock import MagicMock
 
 import attr
@@ -180,16 +181,20 @@ class FakeChannel:
 
 
 class FakeSite:
-    """A fake Twisted Web Site."""
+    """A fake Twisted Web Site.
 
-    pass
+    Twisted's Request object expects these attributes during setup.
+    """
+
+    _parsePOSTFormSubmission = False
+    displayTracebacks = False
 
 
 def make_request(
     reactor,
-    site,
-    method,
-    path,
+    site_or_method,
+    method_or_path=None,
+    path=None,
     content=b"",
     access_token=None,
     request=Request,
@@ -219,6 +224,21 @@ def make_request(
     Returns:
         Tuple[synapse.http.site.SynapseRequest, channel]
     """
+    has_explicit_site = True
+    if isinstance(site_or_method, (bytes, str)):
+        has_explicit_site = False
+        site = FakeSite()
+        method = site_or_method
+
+        if path is None:
+            path = method_or_path
+        else:
+            content = path
+            path = method_or_path
+    else:
+        site = site_or_method
+        method = method_or_path
+
     if not isinstance(method, bytes):
         method = method.encode("ascii")
 
@@ -242,7 +262,17 @@ def make_request(
 
     req = request(channel)
     req.content = BytesIO(content)
-    req.postpath = list(map(unquote, path[1:].split(b"/")))
+    req.method = method
+    req.uri = path
+
+    path_parts = path.split(b"?", 1)
+    req.path = path_parts[0]
+    if len(path_parts) == 2:
+        req.args = parse_qs(path_parts[1], keep_blank_values=True)
+    else:
+        req.args = {}
+
+    req.postpath = list(map(unquote, req.path[1:].split(b"/")))
 
     if access_token:
         req.requestHeaders.addRawHeader(
@@ -258,7 +288,8 @@ def make_request(
     if content:
         req.requestHeaders.addRawHeader(b"Content-Type", b"application/json")
 
-    req.requestReceived(method, path, b"1.1")
+    if has_explicit_site:
+        req.requestReceived(method, path, b"1.1")
 
     return req, channel
 
