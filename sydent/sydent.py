@@ -10,6 +10,7 @@
 # <http://www.apache.org/licenses/LICENSE-2.0>.
 
 import gc
+import configparser
 import logging
 import logging.handlers
 import os
