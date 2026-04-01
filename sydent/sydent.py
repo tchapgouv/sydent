@@ -55,6 +55,29 @@ from sydent.util.tokenutils import generateAlphanumericTokenOfLength
 from sydent.validators.emailvalidator import EmailValidator
 from sydent.validators.msisdnvalidator import MsisdnValidator
 from sydent.util.ip_range import generate_ip_set, DEFAULT_IP_RANGE_BLACKLIST
+from sydent.http.servlets.emailservlet import EmailRequestCodeServlet, EmailValidateCodeServlet
+from sydent.http.servlets.msisdnservlet import MsisdnRequestCodeServlet, MsisdnValidateCodeServlet
+from sydent.http.servlets.lookupservlet import LookupServlet
+from sydent.http.servlets.bulklookupservlet import BulkLookupServlet
+from sydent.http.servlets.lookupv2servlet import LookupV2Servlet
+from sydent.http.servlets.hashdetailsservlet import HashDetailsServlet
+from sydent.http.servlets.pubkeyservlets import (
+    Ed25519Servlet,
+    EphemeralPubkeyIsValidServlet,
+    PubkeyIsValidServlet,
+)
+from sydent.http.servlets.threepidbindservlet import ThreePidBindServlet
+from sydent.http.servlets.threepidunbindservlet import ThreePidUnbindServlet
+from sydent.http.servlets.replication import ReplicationPushServlet
+from sydent.http.servlets.getvalidated3pidservlet import GetValidated3pidServlet
+from sydent.http.servlets.store_invite_servlet import StoreInviteServlet
+from sydent.http.servlets.v1_servlet import V1Servlet
+from sydent.http.servlets.v2_servlet import V2Servlet
+from sydent.http.servlets.blindlysignstuffservlet import BlindlySignStuffServlet
+from sydent.http.servlets.termsservlet import TermsServlet
+from sydent.http.servlets.accountservlet import AccountServlet
+from sydent.http.servlets.registerservlet import RegisterServlet
+from sydent.http.servlets.logoutservlet import LogoutServlet
 from sydent.http.servlets.infoservlet import InfoServlet
 from sydent.http.servlets.internalinfoservlet import InternalInfoServlet
 from sydent.http.servlets.profilereplicationservlet import ProfileReplicationServlet
