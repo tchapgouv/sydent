@@ -13,7 +13,6 @@ from sydent.validators import (
     NextLinkValidationException,
 )
 from sydent.util import time_msec
-from sqlite3 import IntegrityError
 from six.moves.urllib.parse import urlparse
 
 
@@ -120,7 +119,7 @@ def validateSessionWithToken(sydent: "Sydent", sid: int, clientSecret: str, toke
                         set validated = ? where id = ?
                         """, (True, sid),
                     )
-        except IntegrityError as e:
+        except sydent.db_integrity_error as e:
             logger.error(
                 "SQL execution failure during 3PID session validation: %r", e
             )

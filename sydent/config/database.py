@@ -10,6 +10,7 @@
 from configparser import ConfigParser
 
 from sydent.config._base import BaseConfig
+from sydent.config.exceptions import ConfigError
 
 
 class DatabaseConfig(BaseConfig):
@@ -19,6 +20,22 @@ class DatabaseConfig(BaseConfig):
 
         :param cfg: the configuration to be parsed
         """
-        self.database_path = cfg.get("db", "db.file")
+        db_type = cfg.get("db", "db.type")
+        if db_type == "sqlite":
+            self.database_type = "sqlite"
+            self.database_path = cfg.get("db", "db.file")
+        elif db_type == "postgresql":
+            self.database_type = "postgresql"
+            self.postgresql_host = cfg.get("db", "db.postgresql.host")
+            self.postgresql_port = cfg.getint("db", "db.postgresql.port")
+            self.postgresql_user = cfg.get("db", "db.postgresql.user")
+            self.postgresql_password = cfg.get("db", "db.postgresql.password")
+            self.postgresql_database = cfg.get("db", "db.postgresql.database")
+            self.postgresql_sslmode = cfg.get("db", "db.postgresql.sslmode")
+        else:
+            raise ConfigError(
+                "Unsupported db.type %r. Expected one of: sqlite, postgresql"
+                % (db_type,)
+            )
 
         return False

@@ -14,8 +14,7 @@ import configparser
 import logging
 import logging.handlers
 import os
-import sqlite3
-from typing import Optional
+from typing import Any, Optional
 
 import attr
 import prometheus_client
@@ -36,8 +35,8 @@ from twisted.web.http import Request
 from zope.interface import Interface
 
 from sydent.config import SydentConfig
+from sydent.db.factory import DatabaseFactory
 from sydent.db.hashing_metadata import HashingMetadataStore
-from sydent.db.sqlitedb import SqliteDatabase
 from sydent.db.valsession import ThreePidValSessionStore
 from sydent.hs_federation.verifier import Verifier
 from sydent.http.httpcommon import SslComponents
@@ -286,7 +285,9 @@ class Sydent:
 
         logger.info("Starting Sydent server")
 
-        self.db: sqlite3.Connection = SqliteDatabase(self).db
+        database_handles = DatabaseFactory.build(self)
+        self.db = database_handles.connection
+        self.db_integrity_error = database_handles.integrity_error
 
         self.cfg = parse_config_file(get_config_file_path())
 
