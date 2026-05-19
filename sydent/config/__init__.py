@@ -76,7 +76,14 @@ CONFIG_DEFAULTS = {
         "enable_v1_access": "true",
     },
     "db": {
+        "db.type": "sqlite",
         "db.file": os.environ.get("SYDENT_DB_PATH", "sydent.db"),
+        "db.postgresql.host": "localhost",
+        "db.postgresql.port": "5432",
+        "db.postgresql.user": "",
+        "db.postgresql.password": "",
+        "db.postgresql.database": "",
+        "db.postgresql.sslmode": "prefer",
     },
     "http": {
         "clientapi.http.bind_address": "::",
