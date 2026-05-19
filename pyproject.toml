@@ -114,6 +114,7 @@ twisted = ">=18.4.0"
 typing-extensions = ">=3.7.4"
 unpaddedbase64 = ">=1.1.0"
 "zope.interface" = ">=4.6.0"
+psycopg2-binary = ">=2.9.9"
 
 [tool.poetry.dev-dependencies]
 black = "==21.6b0"
