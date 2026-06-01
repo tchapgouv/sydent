@@ -6,7 +6,7 @@ import sqlite3
 from dataclasses import dataclass
 from typing import Any, Type
 
-from sydent.db.dbapi import QmarkToPyformatConnection
+from sydent.db.dbapi import SqlDialectFormatConnection
 from sydent.db.postgresdb import PostgresDatabase
 from sydent.db.sqlitedb import SqliteDatabase
 
@@ -42,7 +42,7 @@ class DatabaseFactory:
                 ) from exc
 
             return DatabaseHandles(
-                connection=QmarkToPyformatConnection(connection),
+                connection=SqlDialectFormatConnection(connection),
                 integrity_error=psycopg2.IntegrityError,
             )
 
