@@ -109,10 +109,10 @@ class PostgresDatabase:
                 verify_count BIGINT DEFAULT 0,
                 persistence_ts BIGINT,
                 origin_server TEXT,
-                origin_id INTEGER
+                origin_id INTEGER,
+                CONSTRAINT ephemeral_public_keys_index UNIQUE (public_key)
             )
             """,
-            "CREATE UNIQUE INDEX IF NOT EXISTS ephemeral_public_keys_index ON ephemeral_public_keys(public_key)",
             """
             CREATE TABLE IF NOT EXISTS peers (
                 id BIGSERIAL PRIMARY KEY,
@@ -120,24 +120,24 @@ class PostgresDatabase:
                 port INTEGER DEFAULT NULL,
                 lastSentAssocsId INTEGER DEFAULT 0,
                 lastSentInviteTokensId INTEGER DEFAULT 0,
-                lastSentInviteUpdatesId INTEGER DEFAULT 0,
                 lastSentEphemeralKeysId INTEGER DEFAULT 0,
                 lastPokeSucceededAt INTEGER,
                 active INTEGER NOT NULL DEFAULT 0,
-                shadow INTEGER NOT NULL DEFAULT 0
+                shadow INTEGER NOT NULL DEFAULT 0,
+                lastSentInviteUpdatesId INTEGER DEFAULT 0,
+                CONSTRAINT name UNIQUE (name)
             )
             """,
-            "CREATE UNIQUE INDEX IF NOT EXISTS name ON peers(name)",
             """
             CREATE TABLE IF NOT EXISTS peer_pubkeys (
                 id BIGSERIAL PRIMARY KEY,
                 peername VARCHAR(255) NOT NULL,
                 alg VARCHAR(16) NOT NULL,
                 key TEXT NOT NULL,
-                FOREIGN KEY (peername) REFERENCES peers(name)
+                FOREIGN KEY (peername) REFERENCES peers(name),
+                CONSTRAINT peername_alg UNIQUE (peername, alg)
             )
             """,
-            "CREATE UNIQUE INDEX IF NOT EXISTS peername_alg ON peer_pubkeys(peername, alg)",
             """
             CREATE TABLE IF NOT EXISTS profiles (
                 user_id TEXT PRIMARY KEY,
@@ -159,10 +159,10 @@ class PostgresDatabase:
                 ts INTEGER,
                 notBefore BIGINT,
                 notAfter BIGINT,
-                lookup_hash VARCHAR(256)
+                lookup_hash VARCHAR(256),
+                CONSTRAINT local_threepid_medium_address UNIQUE (medium, address)
             )
             """,
-            "CREATE UNIQUE INDEX IF NOT EXISTS local_threepid_medium_address ON local_threepid_associations(medium, address)",
             """
             CREATE TABLE IF NOT EXISTS global_threepid_associations (
                 id BIGSERIAL PRIMARY KEY,
@@ -175,12 +175,12 @@ class PostgresDatabase:
                 originServer VARCHAR(255) NOT NULL,
                 originId INTEGER NOT NULL,
                 sgAssoc TEXT NOT NULL,
-                lookup_hash VARCHAR(256)
+                lookup_hash VARCHAR(256),
+                CONSTRAINT global_threepid_originServer_originId UNIQUE (originServer, originId)
             )
             """,
             "CREATE INDEX IF NOT EXISTS global_threepid_medium_address ON global_threepid_associations(medium, address)",
             "CREATE INDEX IF NOT EXISTS global_threepid_medium_lower_address ON global_threepid_associations(medium, LOWER(address))",
-            "CREATE UNIQUE INDEX IF NOT EXISTS global_threepid_originServer_originId ON global_threepid_associations(originServer, originId)",
             "CREATE INDEX IF NOT EXISTS global_threepid_lookup_hash ON global_threepid_associations(lookup_hash)",
             """
             CREATE TABLE IF NOT EXISTS threepid_validation_sessions (
@@ -233,10 +233,10 @@ class PostgresDatabase:
             """
             CREATE TABLE IF NOT EXISTS accepted_terms_urls (
                 user_id TEXT NOT NULL,
-                url TEXT NOT NULL
+                url TEXT NOT NULL,
+                CONSTRAINT accepted_terms_urls_idx UNIQUE (user_id, url)
             )
             """,
-            "CREATE UNIQUE INDEX IF NOT EXISTS accepted_terms_urls_idx ON accepted_terms_urls (user_id, url)",
         ]
 
         for statement in statements:

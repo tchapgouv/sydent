@@ -25,5 +25,5 @@ CREATE TABLE IF NOT EXISTS threepid_token_auths (
 	validationSession integer not null,
 	token varchar(32) not null,
 	sendAttemptNumber integer not null,
-	foreign key (validationSession) references threepid_validations(id)
+	foreign key (validationSession) references threepid_validation_sessions(id)
 );
