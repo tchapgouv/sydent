@@ -271,6 +271,41 @@ class InfoNonShadowTestCase(InfoTestCase):
             },
         )
 
+    def test_internal_info_existing_user(self):
+        """Tests that a response to a /internal-info request includes a new_hs key if
+        the email address is already associated with a MXID.
+        """
+
+        # Create a fake association.
+        assoc = ThreepidAssociation(
+            "email",
+            "john.doe@allowed.server",
+            "somehash",  # We're not checking the hash here so we don't care what's here.
+            "@john:e.external.server",
+            time_msec(),
+            time_msec()-10000,
+            time_msec()+10000,
+        )
+
+        # Store the fake association. We only care about the global store since that's
+        # where Sydent will check if an address is already associated with an MXID.
+        assoc_store = GlobalAssociationStore(self.sydent)
+        assoc_store.addAssociation(assoc, "", "", 0)
+
+        # Check that the 'hs' key is the homeserver of the MXID the address is currently
+        # associated with, and 'new_hs' is the homeserver matching that email address in
+        # the info.yaml file.
+        self._query_info(
+            address="john.doe@allowed.server",
+            expected_result={
+                "hs": "e.external.server",
+                "new_hs": "a.fake.server",
+                "invited": False,
+                "requires_invite": False,
+            },
+            internal=True,
+        )
+
 
 class InfoShadowTestCase(InfoTestCase):
 

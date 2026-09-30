@@ -20,6 +20,7 @@ import logging
 import json
 
 from sydent.db.invite_tokens import JoinTokenStore
+from sydent.db.threepid_associations import GlobalAssociationStore
 from sydent.http.servlets import get_args, jsonwrap, send_cors
 
 
@@ -44,7 +45,7 @@ class InternalInfoServlet(Resource):
     @jsonwrap
     def render_GET(self, request):
         """
-        Returns: { hs: ..., [shadow_hs: ...], invited: true/false, requires_invite: true/false }
+        Returns: { hs: ..., [shadow_hs: ...], [new_hs: ...], invited: true/false, requires_invite: true/false }
         """
 
         send_cors(request)
@@ -55,6 +56,18 @@ class InternalInfoServlet(Resource):
 
         # Find an entry in the info file matching this user's ID
         result = self.info.match_user_id(medium, address)
+
+        # Check if there's a MXID associated with this address, if so use its domain as
+        # the value for "hs" (so that the user can still access their account through
+        # Tchap) and move the value "hs" should have had otherwise to "new_hs" if it's a
+        # different one.
+        store = GlobalAssociationStore(self.sydent)
+        mxid = store.getMxid(medium, address)
+        if mxid:
+            current_hs = mxid.split(':', 1)[1]
+            if current_hs != result['hs']:
+                result['new_hs'] = result['hs']
+                result['hs'] = current_hs
 
         joinTokenStore = JoinTokenStore(self.sydent)
         pendingJoinTokens = joinTokenStore.getTokens(medium, address)
