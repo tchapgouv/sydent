@@ -47,11 +47,26 @@ class Info(object):
             #     patterns:
             #       - .*@matrix.org: { hs: 'matrix.org', shadow_hs: 'shadow-matrix.org' }
 
+            # Email addresses (and the DNS hostnames they rely on) are
+            # case-insensitive, so lowercase the keys of the entries to make
+            # the lookups performed by match_user_id case-insensitive even if
+            # the info file mixes cases.
+            email_info = self.config['medium']['email']
+            email_info['entries'] = {
+                entry.lower(): value
+                for entry, value in email_info.get('entries', {}).items()
+            }
+
         except Exception as e:
             logger.error(e)
 
     def match_user_id(self, medium, address):
         """Return information for a given medium/address combination.
+
+        Email addresses are matched case-insensitively: DNS hostnames are
+        case-insensitive (and so are email addresses in practice), so e.g.
+        "john.doe@Interieur.Gouv.fr" must resolve to the same homeserver as
+        "john.doe@interieur.gouv.fr".
 
         :param medium: The medium of the address.
         :type medium: str
@@ -63,13 +78,19 @@ class Info(object):
         """
         result = {}
 
+        # Lowercase the address before matching it against the info file so
+        # that the lookup is case-insensitive (the entries' keys are
+        # lowercased when loading the info file, and the patterns are
+        # matched with re.IGNORECASE).
+        address = address.lower()
+
         # Find an entry in the info file matching this user's ID
         if address in self.config['medium']['email']['entries']:
             result = self.config['medium']['email']['entries'][address]
         else:
             for pattern_group in self.config['medium']['email']['patterns']:
                 for pattern in pattern_group:
-                    if (re.match("^" + pattern + "$", address)):
+                    if (re.match("^" + pattern + "$", address, re.IGNORECASE)):
                         result = pattern_group[pattern]
                         break
                 if result:

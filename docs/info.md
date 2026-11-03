@@ -58,6 +58,12 @@ medium:
 * `medium`: The medium of the 3PID to get info for (`email`, `msisdn`).
 * `address`: The address of the 3PID to get info for.
 
+Email addresses are matched case-insensitively: the address is lowercased
+before being matched against the `info.yaml` file (whose entries and patterns
+are matched case-insensitively as well), so e.g.
+`john.doe@Interieur.Gouv.fr` and `john.doe@interieur.gouv.fr` resolve to the
+same homeserver.
+
 #### 200 response
 
 ```json

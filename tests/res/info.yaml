@@ -18,6 +18,9 @@ medium:
     email:
         entries:
             john.doe@fake.server: *e_without_invite
+            # This entry mixes cases on purpose to test that lookups are
+            # case-insensitive.
+            UPPER.case@FAKE.server: *a
         patterns:
             - .*@allowed.server: *a
             - .*@(.*\.|)vip.fake.server: *a

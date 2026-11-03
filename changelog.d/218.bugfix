@@ -1,0 +1,1 @@
+Fix a case-sensitive homeserver lookup in the `/info` and `/internal-info` endpoints: email addresses mixing cases (e.g. an auto-capitalised domain name typed on iOS) now resolve to the same homeserver as their lowercased version, instead of falling back on the default pattern. Fixes [#218](https://github.com/tchapgouv/tchap-backend/issues/218).

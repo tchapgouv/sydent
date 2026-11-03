@@ -131,6 +131,83 @@ class InfoNonShadowTestCase(InfoTestCase):
             },
         )
 
+    def test_case_insensitivity(self):
+        """Tests that the homeserver lookup is case-insensitive.
+
+        DNS hostnames (and therefore email addresses) are case-insensitive, so
+        an address with mixed-case characters must resolve to the same
+        homeserver as its lowercased version, instead of falling back on the
+        default pattern. See https://github.com/tchapgouv/tchap-backend/issues/218
+        """
+
+        # Check that a mixed-case address with a dedicated entry returns the
+        # same result as its lowercased version.
+        self._query_info(
+            address="John.Doe@Fake.Server",
+            expected_result={
+                "hs": "e.fake.server",
+            },
+        )
+
+        # Check that a mixed-case address with a dedicated entry that mixes
+        # cases in the info file returns the entry's homeserver.
+        self._query_info(
+            address="upper.case@fake.server",
+            expected_result={
+                "hs": "a.fake.server",
+            },
+        )
+
+        # Check that a mixed-case address matching a pattern which doesn't
+        # allow sub-domains returns the right result, instead of falling back
+        # on the default pattern.
+        self._query_info(
+            address="john.doe@Allowed.Server",
+            expected_result={
+                "hs": "a.fake.server",
+            },
+        )
+
+        # Check that a mixed-case address containing a sub-domain matches a
+        # pattern which allows sub-domains.
+        self._query_info(
+            address="john.doe@VeryVIP.Vip.Fake.Server",
+            expected_result={
+                "hs": "a.fake.server",
+            },
+        )
+
+        # Check that a mixed-case address matching a pattern for a protected
+        # homeserver returns both the public and the protected homeserver.
+        self._query_info(
+            address="john.doe@Internal.Fake.Server",
+            expected_result={
+                "hs": "p.fake.server",
+                "shadow_hs": "public.p.fake.server",
+            },
+        )
+
+        # Check that a mixed-case address which matches no entry nor pattern
+        # still falls back on the default pattern.
+        self._query_info(
+            address="John.Doe@Unknown.Server",
+            expected_result={
+                "hs": "e.fake.server",
+            },
+        )
+
+        # Check that /internal-info is case-insensitive as well.
+        self._query_info(
+            address="john.doe@Internal.Fake.Server",
+            expected_result={
+                "hs": "p.fake.server",
+                "shadow_hs": "public.p.fake.server",
+                "invited": False,
+                "requires_invite": False,
+            },
+            internal=True,
+        )
+
     def test_internal_info(self):
         """Tests the /internal-info endpoint"""
 
